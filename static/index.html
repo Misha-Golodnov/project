@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Paraphraser</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Text Paraphraser</h1>
+        </header>
+
+        <main>
+            <div class="form-section">
+                <form id="paraphraseForm">
+                    <div class="form-group">
+                        <label for="textInput">Enter text to paraphrase:</label>
+                        <textarea 
+                            id="textInput" 
+                            name="text" 
+                            rows="6" 
+                            placeholder="Type or paste your text here..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="numSequences">Number of paraphrases:</label>
+                            <input 
+                                type="number" 
+                                id="numSequences" 
+                                name="num_return_sequences" 
+                                value="1" 
+                                min="1" 
+                                max="5"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numBeams">Beam search width:</label>
+                            <input 
+                                type="number" 
+                                id="numBeams" 
+                                name="num_beams" 
+                                value="5" 
+                                min="1" 
+                                max="10"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="temperature">Temperature:</label>
+                            <input 
+                                type="number" 
+                                id="temperature" 
+                                name="temperature" 
+                                value="1.0" 
+                                min="0.1" 
+                                max="2.0" 
+                                step="0.1"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="submit-btn">
+                        <span class="btn-text">Paraphrase</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <h2>Results</h2>
+                <div class="original-text">
+                    <strong>Original:</strong>
+                    <p id="originalText"></p>
+                </div>
+                <div class="paraphrases">
+                    <strong>Paraphrases:</strong>
+                    <ul id="paraphrasesList"></ul>
+                </div>
+                <div class="device-info">
+                    <small>Running on: <span id="deviceInfo"></span></small>
+                </div>
+            </div>
+
+            <div id="errorSection" class="error-section" style="display: none;">
+                <h3>Error</h3>
+                <p id="errorMessage"></p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
