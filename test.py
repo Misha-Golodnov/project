@@ -4,6 +4,8 @@ from app.main import app, ParaphraseRequest, ParaphraseResponse
 import string
 import re
 
+app.router.on_startup.clear()
+app.router.on_shutdown.clear()
 
 client = TestClient(app)
 

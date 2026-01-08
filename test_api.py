@@ -2,11 +2,34 @@
 Тесты к API с моделью.
 Требует запущенного сервера на http://localhost:8000
 """
+import os
 import requests
 import json
 from typing import List, Dict
+import pytest
 
 BASE_URL = "http://localhost:8000"
+
+
+def _is_api_available() -> bool:
+    try:
+        response = requests.get(f"{BASE_URL}/health", timeout=0.5)
+        return response.status_code == 200
+    except requests.RequestException:
+        return False
+
+
+_RUN_REAL = os.getenv("RUN_REAL_API_TESTS") in {"1", "true", "True", "yes", "YES"}
+_API_AVAILABLE = _is_api_available()
+
+pytestmark = pytest.mark.skipif(
+    (not _RUN_REAL) and (not _API_AVAILABLE),
+    reason=(
+        "Real API tests require a running server at http://localhost:8000. "
+        "Start it with `uvicorn app.main:app --host 0.0.0.0 --port 8000` "
+        "or set RUN_REAL_API_TESTS=1 to force running these tests."
+    ),
+)
 
 
 class TestRealAPIRequests:
