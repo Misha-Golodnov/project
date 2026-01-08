@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app, ParaphraseRequest, ParaphraseResponse
-import string
 import re
 
 app.router.on_startup.clear()
@@ -30,7 +29,7 @@ class TextValidator:
     @classmethod
     def is_valid_text(cls, text: str) -> bool:
         """Проверяет, содержит ли текст только допустимые символы"""
-        if not text:
+        if not text or not text.strip():
             return False
 
         # Проверка на управляющие символы
@@ -286,6 +285,7 @@ class TestEdgeCases:
         """Тест на unicode символы"""
         text = "Hello мир 你好"  # Китайские иероглифы
         # Кириллица допустима, но иероглифы - нет
+        assert TextValidator.is_valid_text(text) is False
         assert TextValidator.is_valid_text("Hello мир") is True
 
     def test_special_punctuation(self):
