@@ -2,11 +2,47 @@
 Тесты к API с моделью.
 Требует запущенного сервера на http://localhost:8000
 """
+import os
 import requests
-import json
-from typing import List, Dict
+import pytest
+import time
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+
+
+def _is_api_available(timeout: float = 1.5) -> bool:
+    try:
+        response = requests.get(f"{BASE_URL}/health", timeout=timeout)
+        return response.status_code == 200
+    except requests.RequestException:
+        return False
+
+
+def _wait_for_api(total_wait_seconds: float = 5.0) -> bool:
+    deadline = time.time() + total_wait_seconds
+    while time.time() < deadline:
+        if _is_api_available():
+            return True
+        time.sleep(0.25)
+    return _is_api_available(timeout=2.5)
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _require_real_api():
+    """Skip these integration tests unless the real API is reachable."""
+    run_real = os.getenv("RUN_REAL_API_TESTS") in {"1", "true", "True", "yes", "YES"}
+    if run_real:
+        return
+
+    wait_seconds = float(os.getenv("API_WAIT_SECONDS", "5"))
+    if _wait_for_api(total_wait_seconds=wait_seconds):
+        return
+
+    pytest.skip(
+        f"Real API tests require a running server at {BASE_URL}. "
+        "Start it with `uvicorn app.main:app --host 0.0.0.0 --port 8000` "
+        "or set RUN_REAL_API_TESTS=1 to force running these tests."
+    )
 
 
 class TestRealAPIRequests:
@@ -51,7 +87,7 @@ class TestRealAPIRequests:
         assert response.status_code == 200
         data = response.json()
         assert len(data["paraphrases"]) == 2
-        print(f"Longer text paraphrase:")
+        print("Longer text paraphrase:")
         for i, p in enumerate(data["paraphrases"], 1):
             print(f"  {i}. {p}")
 
@@ -68,7 +104,7 @@ class TestRealAPIRequests:
         assert response.status_code == 200
         data = response.json()
         assert len(data["paraphrases"]) == 3
-        print(f"Multiple sentences paraphrase:")
+        print("Multiple sentences paraphrase:")
         for i, p in enumerate(data["paraphrases"], 1):
             print(f"  {i}. {p}")
 
@@ -93,7 +129,7 @@ class TestRealAPIRequests:
         text = "Тестирование это важная часть разработки программного обеспечения"
         temperatures = [0.5, 1.0, 1.5]
 
-        print(f"Paraphrase with different temperatures:")
+        print("Paraphrase with different temperatures:")
         for temp in temperatures:
             payload = {
                 "text": text,
@@ -112,7 +148,7 @@ class TestRealAPIRequests:
         text = "Разработка тестов это критически важный процесс"
         beams = [1, 3, 5, 10]
 
-        print(f"Paraphrase with different beam widths:")
+        print("Paraphrase with different beam widths:")
         for beam in beams:
             payload = {
                 "text": text,
@@ -131,7 +167,7 @@ class TestRealAPIRequests:
         payload = {"text": ""}
         response = requests.post(f"{BASE_URL}/paraphrase", json=payload)
         assert response.status_code == 400
-        print(f"Empty text error caught correctly")
+        print("Empty text error caught correctly")
 
     @staticmethod
     def test_paraphrase_whitespace_only_error():
@@ -139,7 +175,7 @@ class TestRealAPIRequests:
         payload = {"text": "   "}
         response = requests.post(f"{BASE_URL}/paraphrase", json=payload)
         assert response.status_code == 400
-        print(f"Whitespace-only text error caught correctly")
+        print("Whitespace-only text error caught correctly")
 
     @staticmethod
     def test_device_info():
